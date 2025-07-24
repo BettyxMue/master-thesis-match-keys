@@ -3,6 +3,8 @@ import random
 from faker import Faker
 import pandas as pd
 import re
+import json
+
 
 # Initialize Faker for German locale
 fake = Faker("de_DE")
@@ -55,4 +57,4 @@ record = {
 
 # Generate and display improved Randall match keys
 randall_keys = randall_improved_match_keys(record)
-randall_keys
+print(json.dumps(randall_keys, indent=4))

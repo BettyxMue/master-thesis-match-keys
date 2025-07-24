@@ -3,6 +3,8 @@ import pandas as pd
 import random
 from faker import Faker
 import re
+import json
+
 
 # Initialize Faker for German locale
 fake = Faker("de_DE")
@@ -54,4 +56,4 @@ record = {
 
 # Generate and show ONS-style match keys
 match_keys = ons_match_keys(record)
-match_keys
+print(json.dumps(match_keys, indent=4))
