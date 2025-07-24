@@ -160,7 +160,7 @@ if matches_mk4:
         print(f"Hash: {hash_val} ← Values: {values}")
 
 if matches_mk5:
-    print("Matches for mk_randall_5 (first + last + emai):")
+    print("Matches for mk_randall_5 (first + last + email):")
     for hash_val, values in matches_mk5:
         print(f"Hash: {hash_val} ← Values: {values}")
 
