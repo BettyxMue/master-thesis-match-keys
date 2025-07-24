@@ -4,6 +4,7 @@ import random
 from faker import Faker
 import re
 import json
+import sys
 
 
 # Initialize Faker for German locale
@@ -34,26 +35,44 @@ def hash_fields(fields):
     combined = "".join(normalize(f) for f in fields if f)
     return hashlib.sha256(combined.encode("utf-8")).hexdigest()
 
-# ONS-style match keys
-def ons_match_keys(record):
-    return {
-        "mk1": hash_fields([record["first_name"], record["last_name"], record["dob"]]),
-        "mk2": hash_fields([record["first_initial"], record["last_name"], record["dob"]]),
-        "mk3": hash_fields([record["first_name"], record["postcode"], record["dob"]]),
-        "mk4": hash_fields([soundex_simple(record["last_name"]), record["dob"]]),
-        "mk5": hash_fields([record["first_name"][:3], record["last_name"], record["year_of_birth"]])
-    }
+# ONS-style match key generation for a DataFrame
+def generate_ons_match_keys(df):
+    df["mk1"] = df.apply(lambda row: hash_fields([row["first_name"], row["last_name"], row["dob"]]), axis=1)
+    df["mk2"] = df.apply(lambda row: hash_fields([row["first_initial"], row["last_name"], row["dob"]]), axis=1)
+    df["mk3"] = df.apply(lambda row: hash_fields([row["first_name"], row["zip"], row["dob"]]), axis=1)
+    df["mk4"] = df.apply(lambda row: hash_fields([soundex_simple(row["last_name"]), row["dob"]]), axis=1)
+    df["mk5"] = df.apply(lambda row: hash_fields([row["first_name"][:3] if pd.notnull(row["first_name"]) else "", row["last_name"], row["year_of_birth"]]), axis=1)
+    return df
 
 # Create a test record
-record = {
+""" record = {
     "first_name": "Anna",
     "last_name": "Schmidt",
     "dob": "1985-06-23",
     "year_of_birth": "1985",
     "postcode": "10115",
     "first_initial": "A"
-}
+} """
 
 # Generate and show ONS-style match keys
-match_keys = ons_match_keys(record)
-print(json.dumps(match_keys, indent=4))
+""" match_keys = ons_match_keys(record)
+print(json.dumps(match_keys, indent=4)) """ 
+
+# Fix the normalize function to handle float inputs (e.g., NaN) robustly
+def normalize(s):
+    try:
+        return re.sub(r'\W+', '', str(s).lower().strip()) if pd.notnull(s) else ""
+    except Exception:
+        return ""
+    
+# Reload and reprocess the dataset
+df_input = pd.read_csv("german_healthcare_records_500.csv")
+df_with_keys = generate_ons_match_keys(df_input)
+
+# Keep only the match key columns in the output
+match_key_columns = ["mk1", "mk2", "mk3", "mk4", "mk5"]
+df_keys_only = df_with_keys[match_key_columns]
+
+# Save to a new CSV
+keys_only_csv_path = "matchkey-output-500_ons.csv"
+df_keys_only.to_csv(keys_only_csv_path, index=False)
