@@ -3,19 +3,22 @@ import re
 import hashlib
 
 # Load the original dataset for attribute distribution analysis
-df_original = pd.read_csv("known-german_healthcare_records_500.csv")
-df_randall = pd.read_csv("matchkey-output-500_randall.csv")
+# df_original = pd.read_csv("known-german_healthcare_records_500.csv")
+# df_randall = pd.read_csv("matchkey-output-500_randall.csv")
+
+df_original = pd.read_csv("us_healthcare_records_500.csv")
+df_randall = pd.read_csv("nc_voter_matchkeys_randall.csv")
 
 # Analyze top distributions for key fields used in ONS and Randall tokens
-top_first_names = df_original["first_name"].value_counts().head(10).index.tolist()
-top_last_names = df_original["last_name"].value_counts().head(10).index.tolist()
-top_dobs = df_original["dob"].value_counts().head(10).index.tolist()
-top_yobs = df_original["year_of_birth"].value_counts().head(10).index.astype(str).tolist()
-top_zips = df_original["zip"].value_counts().head(10).index.tolist()
+top_first_names = df_original["first_name"].value_counts().head(100).index.tolist()
+top_last_names = df_original["last_name"].value_counts().head(100).index.tolist()
+top_dobs = df_original["dob"].value_counts().head(100).index.tolist()
+top_yobs = df_original["year_of_birth"].value_counts().head(100).index.astype(str).tolist()
+top_zips = df_original["zip"].value_counts().head(100).index.tolist()
 top_genders = df_original["gender"].value_counts().head(2).index.tolist()
-top_emails = df_original["email"].value_counts().head(10).index.tolist()
-top_addresses = df_original["address"].value_counts().head(10).index.tolist()
-top_first_initials = df_original["first_initial"].value_counts().head(10).index.tolist()
+top_emails = df_original["email"].value_counts().head(100).index.tolist()
+top_addresses = df_original["address"].value_counts().head(100).index.tolist()
+top_first_initials = df_original["first_initial"].value_counts().head(100).index.tolist()
 
 # Helper functions
 def normalize(s):

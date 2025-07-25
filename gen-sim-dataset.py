@@ -5,6 +5,7 @@ import re
 
 # Reinitialize Faker after kernel reset
 fake = Faker('de_DE')
+# fake = Faker("en_US")  
 Faker.seed(1234)
 random.seed(1234)
 

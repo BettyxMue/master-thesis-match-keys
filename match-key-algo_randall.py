@@ -7,9 +7,9 @@ import json
 
 
 # Initialize Faker for German locale
-fake = Faker("de_DE")
+""" fake = Faker("de_DE")
 Faker.seed(42)
-random.seed(42)
+random.seed(42) """
 
 # Helper to normalize strings
 def normalize(s):
@@ -87,7 +87,7 @@ def normalize(s):
         return ""
     
 # Load the noisy dataset
-df_input = pd.read_csv("german_healthcare_records_500.csv")
+df_input = pd.read_csv("nc_voter_clean.csv")
 
 # Generate Randall-style match keys
 df_with_randall_keys = generate_randall_match_keys(df_input)
@@ -97,5 +97,5 @@ randall_key_columns = [f"mk_randall_{i+1}" for i in range(10)]
 df_randall_keys_only = df_with_randall_keys[randall_key_columns]
 
 # Save to CSV
-randall_keys_csv_path = "matchkey-output-500_randall.csv"
+randall_keys_csv_path = "nc_voter_matchkeys.csv"
 df_randall_keys_only.to_csv(randall_keys_csv_path, index=False)
