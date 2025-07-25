@@ -2,20 +2,30 @@ import pandas as pd
 import re
 import hashlib
 
+# Define the file paths for the input CSVs
+df_original_file = "nc_voter_clean_dob.csv"
+df_ons_file = "ohio_voter_matchkeys_ons.csv"
+
 # Load the original dataset for attribute distribution analysis
-df_original = pd.read_csv("us_healthcare_records_500.csv")
-df_ons = pd.read_csv("nc_voter_matchkeys_ons.csv")
+df_original = pd.read_csv(df_original_file)
+df_ons = pd.read_csv(df_ons_file)
 
 # Analyze top distributions for key fields used in ONS and Randall tokens
-top_first_names = df_original["first_name"].value_counts().head(10).index.tolist()
-top_last_names = df_original["last_name"].value_counts().head(10).index.tolist()
-top_dobs = df_original["dob"].value_counts().head(10).index.tolist()
-top_yobs = df_original["year_of_birth"].value_counts().head(10).index.astype(str).tolist()
-top_zips = df_original["zip"].value_counts().head(10).index.tolist()
+top_first_names = df_original["first_name"].value_counts().head(100).index.tolist()
+top_last_names = df_original["last_name"].value_counts().head(100).index.tolist()
+top_dobs = df_original["dob"].value_counts().head(100).index.tolist()
+top_yobs = df_original["year_of_birth"].value_counts().head(100).index.astype(str).tolist()
+top_zips = df_original["zip"].value_counts().head(100).index.tolist()
 top_genders = df_original["gender"].value_counts().head(2).index.tolist()
-top_emails = df_original["email"].value_counts().head(10).index.tolist()
-top_addresses = df_original["address"].value_counts().head(10).index.tolist()
-top_first_initials = df_original["first_initial"].value_counts().head(10).index.tolist()
+# top_emails = df_original["email"].value_counts().head(100).index.tolist()
+top_addresses = df_original["address"].value_counts().head(100).index.tolist()
+top_first_initials = df_original["first_initial"].value_counts().head(100).index.tolist()
+
+# Check if the 'email' column exists before analyzing its distribution
+if "email" in df_original.columns:
+    top_emails = df_original["email"].value_counts().head(100).index.tolist()
+else:
+    top_emails = []  # Leave it empty if the column doesn't exist
 
 # Helper functions
 def normalize(s):
@@ -278,6 +288,84 @@ ons_attack_results = {
     }
 
 print(ons_attack_results)
+
+# Open a file to write the output
+output_file = "ons_attack_results.txt"
+with open(output_file, "w", encoding="utf-8") as f:
+    print("Used distribution: " + df_original_file, file=f)
+    print("Used matchkeys: " + df_ons_file, file=f)
+
+    # Write the ons_attack_results dictionary to the file
+    print(ons_attack_results, file=f)
+
+    # Print the matched combinations to the file
+    if ons_mk1_hits != 0:
+        print("Matched values for mk1 (first + last + dob):", file=f)
+        for hash_val, values in mk1_matches:
+            print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
+
+    if ons_mk2_hits != 0:
+        print("Matched values for mk2 (first_initial + last + dob):", file=f)
+        for hash_val, values in mk2_matches:
+            print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
+
+    if ons_mk3_hits != 0:
+        print("Matched values for mk3 (first + zip + dob):", file=f)
+        for hash_val, values in mk3_matches:
+            print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
+
+    if ons_mk4_hits != 0:
+        print("Matched values for mk4 (soundex(last name) + dob):", file=f)
+        for hash_val, values in mk4_matches:
+            print(f"Hash: {hash_val}  ←  Values: {values}", file=f)   
+
+    if ons_mk5_hits != 0:
+        print("Matched values for mk5 (first[:3] + last + year_of_birth):", file=f)
+        for hash_val, values in mk5_matches:
+            print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
+
+    if ons_mk6_hits != 0:
+        print("Matched values for mk6 (first + soundex(last name) + dob):", file=f)
+        for hash_val, values in mk6_matches:
+            print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
+
+    if ons_mk7_hits != 0:
+        print("Matched values for mk7 (first_initial + soundex(last name) + dob):", file=f)
+        for hash_val, values in mk7_matches:
+            print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
+
+    if ons_mk8_hits != 0:
+        print("Matched values for mk8 (first + last + dob[:7]):", file=f)
+        for hash_val, values in mk8_matches:
+            print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
+
+    if ons_mk9_hits != 0:
+        print("Matched values for mk9 (first_initial + last_initial + year_of_birth):", file=f)
+        for hash_val, values in mk9_matches:
+            print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
+
+    if ons_mk10_hits != 0:
+        print("Matched values for mk10 (last_name + zip + year_of_birth):", file=f)
+        for hash_val, values in mk10_matches:
+            print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
+
+    if ons_mk11_hits != 0:
+        print("Matched values for mk11 (first + year_of_birth + zip[:3]):", file=f)
+        for hash_val, values in mk11_matches:
+            print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
+
+    if ons_mk12_hits != 0:
+        print("Matched values for mk12 (soundex(first_name) + last_name + dob):", file=f)
+        for hash_val, values in mk12_matches:
+            print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
+
+    if ons_mk13_hits != 0:
+        print("Matched values for mk13 (last_name + year_of_birth + zip[:3]):", file=f)
+        for hash_val, values in mk13_matches:
+            print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
+
+# Notify the user that the results have been saved
+print(f"Results have been written to {output_file}")
 
 """ # Print the matched combinations
 if ons_mk1_hits != 0:

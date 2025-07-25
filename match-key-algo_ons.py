@@ -3,9 +3,6 @@ import pandas as pd
 import random
 from faker import Faker
 import re
-import json
-import sys
-
 
 # Initialize Faker for German locale
 """ fake = Faker("de_DE")
@@ -79,7 +76,7 @@ def normalize(s):
         return ""
     
 # Reload and reprocess the dataset
-df_input = pd.read_csv("nc_voter_clean.csv", dtype="str")
+df_input = pd.read_csv("ohio_voter_clean.csv", dtype="str")
 df_with_keys = generate_ons_13_matchkeys(df_input)
 
 # Keep only the match key columns in the output
@@ -87,5 +84,5 @@ match_key_columns = ["mk1", "mk2", "mk3", "mk4", "mk5", "mk6", "mk7", "mk8", "mk
 df_keys_only = df_with_keys[match_key_columns]
 
 # Save to a new CSV
-keys_only_csv_path = "nc_voter_matchkeys_ons.csv"
+keys_only_csv_path = "ohio_voter_matchkeys_ons.csv"
 df_keys_only.to_csv(keys_only_csv_path, index=False)

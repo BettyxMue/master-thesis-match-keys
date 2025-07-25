@@ -1,13 +1,15 @@
+import random
 import pandas as pd
 import re
 import hashlib
 
-# Load the original dataset for attribute distribution analysis
-# df_original = pd.read_csv("known-german_healthcare_records_500.csv")
-# df_randall = pd.read_csv("matchkey-output-500_randall.csv")
+# Define the file paths for the input CSVs
+df_original_file = "nc_voter_clean_dob.csv"
+df_randall_file = "ohio_voter_matchkeys_randall.csv"
 
-df_original = pd.read_csv("us_healthcare_records_500.csv")
-df_randall = pd.read_csv("nc_voter_matchkeys_randall.csv")
+# Load the original dataset for attribute distribution analysis
+df_original = pd.read_csv(df_original_file)
+df_randall = pd.read_csv(df_randall_file)
 
 # Analyze top distributions for key fields used in ONS and Randall tokens
 top_first_names = df_original["first_name"].value_counts().head(100).index.tolist()
@@ -16,9 +18,15 @@ top_dobs = df_original["dob"].value_counts().head(100).index.tolist()
 top_yobs = df_original["year_of_birth"].value_counts().head(100).index.astype(str).tolist()
 top_zips = df_original["zip"].value_counts().head(100).index.tolist()
 top_genders = df_original["gender"].value_counts().head(2).index.tolist()
-top_emails = df_original["email"].value_counts().head(100).index.tolist()
+# top_emails = df_original["email"].value_counts().head(100).index.tolist()
 top_addresses = df_original["address"].value_counts().head(100).index.tolist()
 top_first_initials = df_original["first_initial"].value_counts().head(100).index.tolist()
+
+# Check if the 'email' column exists before analyzing its distribution
+if "email" in df_original.columns:
+    top_emails = df_original["email"].value_counts().head(100).index.tolist()
+else:
+    top_emails = []  # Leave it empty if the column doesn't exist
 
 # Helper functions
 def normalize(s):
@@ -142,52 +150,62 @@ randall_hits = {
 
 print(randall_hits)
 
-if matches_mk1:
-    print("Matches for mk_randall_1 (first + last + dob):")
-    for hash_val, values in matches_mk1:
-        print(f"Hash: {hash_val} ← Values: {values}")
+# Open a file to write the output
+output_file = "randall_attack_results.txt"
+with open(output_file, "w", encoding="utf-8") as f:
+    print("Used distribution: " + df_original_file, file=f)
+    print("Used matchkeys: " + df_randall_file, file=f)
 
-if matches_mk2:
-    print("Matches for mk_randall_2 (first + zip + yob):")
-    for hash_val, values in matches_mk2:
-        print(f"Hash: {hash_val} ← Values: {values}")
+    # Write the ons_attack_results dictionary to the file
+    print(randall_hits, file=f)
 
-if matches_mk3:
-    print("Matches for mk_randall_3 (last_name + dob + gender):")
-    for hash_val, values in matches_mk3:
-        print(f"Hash: {hash_val} ← Values: {values}")
+    # Print the matched combinations to the file
+    if matches_mk1:
+        print("Matches for mk_randall_1 (first + last + dob):", file=f)
+        for hash_val, values in matches_mk1:
+            print(f"Hash: {hash_val} ← Values: {values}", file=f)
 
-if matches_mk4:
-    print("Matches for mk_randall_4 (first_name + gender + zip):")
-    for hash_val, values in matches_mk4:
-        print(f"Hash: {hash_val} ← Values: {values}")
+    if matches_mk2:
+        print("Matches for mk_randall_2 (first + zip + yob):", file=f)
+        for hash_val, values in matches_mk2:
+            print(f"Hash: {hash_val} ← Values: {values}", file=f)
 
-if matches_mk5:
-    print("Matches for mk_randall_5 (first + last + email):")
-    for hash_val, values in matches_mk5:
-        print(f"Hash: {hash_val} ← Values: {values}")
+    if matches_mk3:
+        print("Matches for mk_randall_3 (last_name + dob + gender):", file=f)
+        for hash_val, values in matches_mk3:
+            print(f"Hash: {hash_val} ← Values: {values}", file=f)
 
-if matches_mk6:
-    print("Matches for mk_randall_6: (last + yob + zip)")
-    for hash_val, values in matches_mk6:
-        print(f"Hash: {hash_val} ← Values: {values}")
+    if matches_mk4:
+        print("Matches for mk_randall_4 (first_name + gender + zip):", file=f)
+        for hash_val, values in matches_mk4:
+            print(f"Hash: {hash_val} ← Values: {values}", file=f)
 
-if matches_mk7:
-    print("Matches for mk_randall_7: (first_initial + last + dob)")
-    for hash_val, values in matches_mk7:
-        print(f"Hash: {hash_val} ← Values: {values}")
+    if matches_mk5:
+        print("Matches for mk_randall_5 (first + last + email):", file=f)
+        for hash_val, values in matches_mk5:
+            print(f"Hash: {hash_val} ← Values: {values}", file=f)
 
-if matches_mk8:
-    print("Matches for mk_randall_8 (first_name + address + zip):")
-    for hash_val, values in matches_mk8:
-        print(f"Hash: {hash_val} ← Values: {values}")
+    if matches_mk6:
+        print("Matches for mk_randall_6: (last + yob + zip)", file=f)
+        for hash_val, values in matches_mk6:
+            print(f"Hash: {hash_val} ← Values: {values}", file=f)
 
-if matches_mk9:
-    print("Matches for mk_randall_9 (first_name + dob + email):")
-    for hash_val, values in matches_mk9:
-        print(f"Hash: {hash_val} ← Values: {values}")
+    if matches_mk7:
+        print("Matches for mk_randall_7: (first_initial + last + dob)", file=f)
+        for hash_val, values in matches_mk7:
+            print(f"Hash: {hash_val} ← Values: {values}", file=f)
 
-if matches_mk10:
-    print("Matches for mk_randall_10 (last_name + gender + email):")
-    for hash_val, values in matches_mk10:
-        print(f"Hash: {hash_val} ← Values: {values}")
+    if matches_mk8:
+        print("Matches for mk_randall_8 (first_name + address + zip):", file=f)
+        for hash_val, values in matches_mk8:
+            print(f"Hash: {hash_val} ← Values: {values}", file=f)
+
+    if matches_mk9:
+        print("Matches for mk_randall_9 (first_name + dob + email):", file=f)
+        for hash_val, values in matches_mk9:
+            print(f"Hash: {hash_val} ← Values: {values}", file=f)
+
+    if matches_mk10:
+        print("Matches for mk_randall_10 (last_name + gender + email):", file=f)
+        for hash_val, values in matches_mk10:
+            print(f"Hash: {hash_val} ← Values: {values}", file=f)

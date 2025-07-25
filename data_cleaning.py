@@ -1,8 +1,11 @@
 import pandas as pd
 
 # Load a sample of the NC voter dataset
-file_path = "ncvoter_Statewide.txt"
-df = pd.read_csv(file_path, delimiter="\t", dtype=str, encoding="ISO-8859-1")
+file_path = "ohio_voter.txt"
+# df = pd.read_csv(file_path, delimiter="\t", dtype=str, encoding="ISO-8859-1")
+df = pd.read_csv(file_path, delimiter=",", quotechar='"', dtype=str, encoding="utf-8")
+
+print(df.columns)
 
 # ___________North Carolina___________
 # Select relevant columns
@@ -34,24 +37,24 @@ df = pd.read_csv(file_path, delimiter="\t", dtype=str, encoding="ISO-8859-1")
 #____________Ohio_____________
 # Select relevant columns
 df_filtered = df[[
-    "first_name",
-    "middle_name",
-    "last_name",
-    "date_of_birth",
-    "residential_address1",
-    "residential_city",
-    "residential_zip",
+    "FIRST_NAME",
+    "MIDDLE_NAME",
+    "LAST_NAME",
+    "DATE_OF_BIRTH",
+    "RESIDENTIAL_ADDRESS1",
+    "RESIDENTIAL_CITY",
+    "RESIDENTIAL_ZIP",
 ]]
 
 # Rename columns to match the structure of the simulated dataset
 df_filtered = df_filtered.rename(columns={
-    "first_name": "first_name",
-    "middle_name": "middle_name",
-    "last_name": "last_name",
-    "date_of_birth": "dob",
-    "residential_address1": "address",
-    "residential_city": "city",
-    "residential_zip": "zip"
+    "FIRST_NAME": "first_name",
+    "MIDDLE_NAME": "middle_name",
+    "LAST_NAME": "last_name",
+    "DATE_OF_BIRTH": "dob",
+    "RESIDENTIAL_ADDRESS1": "address",
+    "RESIDENTIAL_CITY": "city",
+    "RESIDENTIAL_ZIP": "zip"
 })
 
 # Drop rows with missing names or birth year
@@ -75,9 +78,9 @@ df_filtered["address"] = df_filtered["address"].str.strip().str.lower()
 df_filtered["city"] = df_filtered["city"].str.strip().str.lower()
 
 # Ensure phone and zip are strings and clean whitespace
-df_filtered["phone"] = df_filtered["phone"].fillna("").astype(str).str.strip().str.lower()
+# df_filtered["phone"] = df_filtered["phone"].fillna("").astype(str).str.strip().str.lower()
 df_filtered["zip"] = df_filtered["zip"].fillna("").astype(str).str.strip().str.lower()
-df_filtered["gender"] = df_filtered["gender"].fillna("").str.lower().str.strip()
+# df_filtered["gender"] = df_filtered["gender"].fillna("").str.lower().str.strip()
 
 # Add a column with the first initial of the first name (still uppercase for initials)
 df_filtered["first_initial"] = df_filtered["first_name"].str[0].str.upper()
