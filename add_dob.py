@@ -21,7 +21,7 @@ def generate_random_dob(year):
     return None  # Return None if the year is invalid
 
 # Input and output file paths
-input_file = "nc_voter_clean.csv"
+input_file = "nc_voter_clean_new.csv"
 output_file = "nc_voter_clean_dob.csv"
 
 # Load the dataset

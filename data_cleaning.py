@@ -1,15 +1,13 @@
 import pandas as pd
 
-# Load a sample of the NC voter dataset
-file_path = "ohio_voter.txt"
-# df = pd.read_csv(file_path, delimiter="\t", dtype=str, encoding="ISO-8859-1")
-df = pd.read_csv(file_path, delimiter=",", quotechar='"', dtype=str, encoding="utf-8")
-
-print(df.columns)
+# Load a sample of the voter dataset
+file_path = "ncvoter_Statewide.txt"
+df = pd.read_csv(file_path, delimiter="\t", dtype=str, encoding="ISO-8859-1")
+# df = pd.read_csv(file_path, delimiter=",", quotechar='"', dtype=str, encoding="utf-8")
 
 # ___________North Carolina___________
 # Select relevant columns
-""" df_filtered = df[[
+df_filtered = df[[
     "first_name",
     "middle_name",
     "last_name",
@@ -19,10 +17,10 @@ print(df.columns)
     "full_phone_number",
     "gender_code",
     "birth_year"
-]] """
+]] 
 
 # Rename columns to match the structure of the simulated dataset
-""" df_filtered = df_filtered.rename(columns={
+df_filtered = df_filtered.rename(columns={
     "first_name": "first_name",
     "middle_name": "middle_name",
     "last_name": "last_name",
@@ -32,11 +30,11 @@ print(df.columns)
     "full_phone_number": "phone",
     "gender_code": "gender",
     "birth_year": "year_of_birth"
-}) """
+}) 
 
 #____________Ohio_____________
 # Select relevant columns
-df_filtered = df[[
+""" df_filtered = df[[
     "FIRST_NAME",
     "MIDDLE_NAME",
     "LAST_NAME",
@@ -55,7 +53,7 @@ df_filtered = df_filtered.rename(columns={
     "RESIDENTIAL_ADDRESS1": "address",
     "RESIDENTIAL_CITY": "city",
     "RESIDENTIAL_ZIP": "zip"
-})
+})"""
 
 # Drop rows with missing names or birth year
 # df_filtered = df_filtered.dropna(subset=["first_name", "last_name", "year_of_birth"])
@@ -69,25 +67,34 @@ df_filtered["last_name"] = df_filtered["last_name"].str.strip().str.lower()
 df_filtered["address"] = df_filtered["address"].replace(r"(?i)^removed$", "", regex=True).str.lower()
 df_filtered["city"] = df_filtered["city"].replace(r"(?i)^removed$", "", regex=True).str.lower()
 
+# Remove '#' followed by a number or letter in the address field
+df_filtered["address"] = df_filtered["address"].str.replace(r"#\s*\w+", "", regex=True)
+
+# Remove extra spaces in the address field (AFTER removing the '#' pattern)
+df_filtered["address"] = df_filtered["address"].apply(lambda x: " ".join(x.split()) if isinstance(x, str) else x)
+
 # Remove '#' characters from last names (or any other field)
 df_filtered["last_name"] = df_filtered["last_name"].str.replace("#", "", regex=False)
 
 # Optional: Strip whitespace and standardize formatting
 df_filtered["last_name"] = df_filtered["last_name"].str.strip().str.lower()
-df_filtered["address"] = df_filtered["address"].str.strip().str.lower()
-df_filtered["city"] = df_filtered["city"].str.strip().str.lower()
+#df_filtered["address"] = df_filtered["address"].str.strip().str.lower()
+#df_filtered["city"] = df_filtered["city"].str.strip().str.lower()
+
+# Ensure date of birth is in a consistent format (YYYY-MM-DD)
+# df_filtered["dob"] = pd.to_datetime(df_filtered["dob"], errors='coerce').dt.strftime('%Y-%m-%d')
 
 # Ensure phone and zip are strings and clean whitespace
-# df_filtered["phone"] = df_filtered["phone"].fillna("").astype(str).str.strip().str.lower()
+df_filtered["phone"] = df_filtered["phone"].fillna("").astype(str).str.strip().str.lower()
 df_filtered["zip"] = df_filtered["zip"].fillna("").astype(str).str.strip().str.lower()
-# df_filtered["gender"] = df_filtered["gender"].fillna("").str.lower().str.strip()
+df_filtered["gender"] = df_filtered["gender"].fillna("").str.lower().str.strip()
 
 # Add a column with the first initial of the first name (still uppercase for initials)
 df_filtered["first_initial"] = df_filtered["first_name"].str[0].str.upper()
 
 # Extract the birth year from the date of birth
-df_filtered["year_of_birth"] = df_filtered["dob"].str[:4]
-
+# df_filtered["year_of_birth"] = df_filtered["dob"].str[:4]
+print(df_filtered["address"].head(40))
 # Save the cleaned version
-output_path = "ohio_voter_clean.csv"
-df_filtered.to_csv(output_path, index=False)
+output_path = "nc_voter_clean_new.csv"
+df_filtered.to_csv(output_path, index=False, encoding="utf-8")
