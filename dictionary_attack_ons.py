@@ -3,8 +3,8 @@ import re
 import hashlib
 
 # Define the file paths for the input CSVs
-df_original_file = "nc_voter_clean_dob.csv"
-df_ons_file = "ohio_voter_matchkeys_ons.csv"
+df_original_file = r"Raw_data/nc_voter_clean_dob.csv"
+df_ons_file = r"Raw_data/ohio_voter_matchkeys_ons.csv"
 
 # Load the original dataset for attribute distribution analysis
 df_original = pd.read_csv(df_original_file)

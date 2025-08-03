@@ -3,15 +3,10 @@ import re
 import hashlib
 from scipy.stats import spearmanr
 import matplotlib.pyplot as plt
-import ace_tools as tools
 
 # Reload required CSV files
-df_encoded = pd.read_csv("/mnt/data/matchkey-output-500_randall.csv")
-df_plain = pd.read_csv("/mnt/data/known-german_healthcare_records_500.csv")
-
-# Add missing dob if needed
-if "dob" not in df_plain.columns and "year_of_birth" in df_plain.columns:
-    df_plain["dob"] = df_plain["year_of_birth"].apply(lambda y: f"{y}-01-01" if pd.notnull(y) else "")
+df_encoded = pd.read_csv("matchkey-output-500_randall.csv")
+df_plain = pd.read_csv("known-german_healthcare_records_500.csv")
 
 # Helper functions
 def normalize(s):
@@ -82,6 +77,3 @@ plt.gca().invert_yaxis()
 plt.tight_layout()
 plt.grid(True)
 plt.show()
-
-# Display correlation results in table format
-tools.display_dataframe_to_user(name="Improved Randall Correlation Analysis", dataframe=correlation_results)

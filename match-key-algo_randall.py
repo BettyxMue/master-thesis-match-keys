@@ -87,7 +87,7 @@ def normalize(s):
         return ""
     
 # Load the noisy dataset
-df_input = pd.read_csv("ohio_voter_clean.csv")
+df_input = pd.read_csv(r"Raw_data/nc_voter_clean_new.csv")
 
 # Generate Randall-style match keys
 df_with_randall_keys = generate_randall_match_keys(df_input)
@@ -97,5 +97,5 @@ randall_key_columns = [f"mk_randall_{i+1}" for i in range(10)]
 df_randall_keys_only = df_with_randall_keys[randall_key_columns]
 
 # Save to CSV
-randall_keys_csv_path = "ohio_voter_matchkeys_randall.csv"
+randall_keys_csv_path = r"Gen_match_keys/nc_voter_matchkeys_randall.csv"
 df_randall_keys_only.to_csv(randall_keys_csv_path, index=False)

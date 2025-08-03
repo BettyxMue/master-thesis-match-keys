@@ -21,11 +21,11 @@ def generate_random_dob(year):
     return None  # Return None if the year is invalid
 
 # Input and output file paths
-input_file = "nc_voter_clean_new.csv"
-output_file = "nc_voter_clean_dob.csv"
+input_file = r"Raw_data/nc_voter_clean_new.csv"
+output_file = r"Raw_data/nc_voter_clean_new_dob.csv"
 
-# Load the dataset
-df = pd.read_csv(input_file)
+# Load the dataset with explicit data types for 'zip' and 'phone'
+df = pd.read_csv(input_file, dtype={"zip": str, "phone": str})
 
 # Check and generate random 'dob' values if necessary
 if "dob" not in df.columns or df["dob"].isnull().any():
