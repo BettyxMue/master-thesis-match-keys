@@ -89,7 +89,7 @@ def normalize(s):
         return ""
     
 # Reload and reprocess the dataset
-df_input = pd.read_csv(r"Raw_data/nc_voter_clean_new_dob.csv", dtype="str")
+df_input = pd.read_csv(r"Raw_data/nc_voter_clean_new.csv", dtype="str")
 df_with_keys = generate_ons_13_matchkeys(df_input)
 
 # Keep only the match key columns in the output
@@ -97,5 +97,5 @@ match_key_columns = ["mk1", "mk2", "mk3", "mk4", "mk5", "mk6", "mk7", "mk8", "mk
 df_keys_only = df_with_keys[match_key_columns]
 
 # Save to a new CSV
-keys_only_csv_path = r"Gen_match_keys/nc_voter_dob_matchkeys_ons.csv"
+keys_only_csv_path = r"Gen_match_keys/nc_voter_matchkeys_ons.csv"
 df_keys_only.to_csv(keys_only_csv_path, index=False)

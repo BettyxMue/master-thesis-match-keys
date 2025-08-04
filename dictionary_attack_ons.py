@@ -3,8 +3,9 @@ import re
 import hashlib
 
 # Define the file paths for the input CSVs
-df_original_file = r"Raw_data/nc_voter_clean_dob.csv"
-df_ons_file = r"Raw_data/ohio_voter_matchkeys_ons.csv"
+df_original_file = r"Raw_data/ohio_voter_clean_new.csv"
+df_ons_file = r"Gen_match_keys/nc_voter_matchkeys_ons.csv"
+output_file = r"Results/ohio-nc_ons-attack_results.txt"
 
 # Load the original dataset for attribute distribution analysis
 df_original = pd.read_csv(df_original_file)
@@ -13,10 +14,10 @@ df_ons = pd.read_csv(df_ons_file)
 # Analyze top distributions for key fields used in ONS and Randall tokens
 top_first_names = df_original["first_name"].value_counts().head(100).index.tolist()
 top_last_names = df_original["last_name"].value_counts().head(100).index.tolist()
-top_dobs = df_original["dob"].value_counts().head(100).index.tolist()
+# top_dobs = df_original["dob"].value_counts().head(100).index.tolist()
 top_yobs = df_original["year_of_birth"].value_counts().head(100).index.astype(str).tolist()
 top_zips = df_original["zip"].value_counts().head(100).index.tolist()
-top_genders = df_original["gender"].value_counts().head(2).index.tolist()
+# top_genders = df_original["gender"].value_counts().head(2).index.tolist()
 # top_emails = df_original["email"].value_counts().head(100).index.tolist()
 top_addresses = df_original["address"].value_counts().head(100).index.tolist()
 top_first_initials = df_original["first_initial"].value_counts().head(100).index.tolist()
@@ -26,6 +27,18 @@ if "email" in df_original.columns:
     top_emails = df_original["email"].value_counts().head(100).index.tolist()
 else:
     top_emails = []  # Leave it empty if the column doesn't exist
+
+# Check if the "gender" column exists before analyzing its distribution
+if "gender" in df_original.columns:
+    top_genders = df_original["gender"].value_counts().head(2).index.tolist()
+else:
+    top_genders = []  # Leave it empty if the column doesn't exist
+
+# Check if the "dob" column exists before analyzing its distribution
+if "dob" in df_original.columns:
+    top_dobs = df_original["dob"].value_counts().head(100).index.tolist()
+else:
+    top_dobs = []  # Leave it empty if the column doesn't exist
 
 # Helper functions
 def normalize(s):
@@ -290,7 +303,6 @@ ons_attack_results = {
 print(ons_attack_results)
 
 # Open a file to write the output
-output_file = "ons_attack_results.txt"
 with open(output_file, "w", encoding="utf-8") as f:
     print("Used distribution: " + df_original_file, file=f)
     print("Used matchkeys: " + df_ons_file, file=f)

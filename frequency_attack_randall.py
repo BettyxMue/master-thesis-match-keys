@@ -5,8 +5,8 @@ from scipy.stats import spearmanr
 import matplotlib.pyplot as plt
 
 # Reload required CSV files
-df_encoded = pd.read_csv("matchkey-output-500_randall.csv")
-df_plain = pd.read_csv("known-german_healthcare_records_500.csv")
+df_encoded = pd.read_csv(r"Gen_match_keys/ohio_voter_matchkeys_randall.csv")
+df_plain = pd.read_csv(r"Raw_data/nc_voter_clean_new_dob.csv")
 
 # Helper functions
 def normalize(s):
@@ -40,7 +40,7 @@ plaintext_hash_freqs = {}
 for name, fields in candidate_keys.items():
     if all(f in df_plain.columns for f in fields):
         combos = generate_plaintext_combinations(df_plain, fields)
-        hashed_combos = combos.apply(lambda x: hash_fields(x.split("|")))
+        hashed_combos = combos.str.split("|").apply(hash_fields)
         freqs = hashed_combos.value_counts()
         plaintext_hash_freqs[name] = freqs
 
@@ -48,32 +48,40 @@ for name, fields in candidate_keys.items():
 correlations = {}
 for mk_col in df_encoded.columns:
     encoded_freq = df_encoded[mk_col].value_counts()
-    top_encoded = encoded_freq[encoded_freq > 1]
+    top_encoded = encoded_freq[encoded_freq >= 1] #or skip filter entirely
     if top_encoded.empty:
         continue
     best_corr = 0
     best_key = None
     for key_name, freqs in plaintext_hash_freqs.items():
         common = top_encoded.index.intersection(freqs.index)
-        if len(common) > 5:
+        if len(common) >= 3:
             encoded_vals = top_encoded[common].values
             plain_vals = freqs[common].values
-            corr, _ = spearmanr(encoded_vals, plain_vals)
+            if len(set(encoded_vals)) > 1 and len(set(plain_vals)) > 1:
+                corr, _ = spearmanr(encoded_vals, plain_vals)
+            else:
+                corr = 0  # Or you can use `float('nan')` if you want to exclude it
             if corr > best_corr:
                 best_corr = corr
                 best_key = key_name
-    correlations[mk_col] = (best_key, best_corr)
+    # Only store meaningful correlations
+    if best_key and best_corr > 0:
+        correlations[mk_col] = (best_key, best_corr)
 
 # Prepare and visualize results
 correlation_results = pd.DataFrame.from_dict(correlations, orient="index", columns=["Best_Plaintext_Key", "Spearman_Correlation"])
 correlation_results.sort_values(by="Spearman_Correlation", ascending=False, inplace=True)
 
 # Bar chart of correlation values
-plt.figure(figsize=(10, 6))
-plt.barh(correlation_results.index, correlation_results["Spearman_Correlation"], color="skyblue")
-plt.xlabel("Spearman Correlation")
-plt.title("Correlation between Encoded Matchkeys and Plaintext Key Frequencies (Randall)")
-plt.gca().invert_yaxis()
-plt.tight_layout()
-plt.grid(True)
-plt.show()
+if correlation_results.empty == True:
+    print("No correlations found.")
+else:
+    plt.figure(figsize=(10, 6))
+    plt.barh(correlation_results.index, correlation_results["Spearman_Correlation"], color="skyblue")
+    plt.xlabel("Spearman Correlation")
+    plt.title("Correlation between Encoded Matchkeys and Plaintext Key Frequencies (Randall)")
+    plt.gca().invert_yaxis()
+    plt.tight_layout()
+    plt.grid(True)
+    plt.show()
