@@ -32,7 +32,8 @@ else:
 if "gender" in df_original.columns:
     top_genders = df_original["gender"].value_counts().head(2).index.tolist()
 else:
-    top_genders = []  # Leave it empty if the column doesn't exist
+    # Assume a 50:50 ratio of male and female if the column doesn't exist
+    top_genders = ["M", "F"]
 
 # Check if the "dob" column exists before analyzing its distribution
 if "dob" in df_original.columns:
@@ -312,67 +313,67 @@ with open(output_file, "w", encoding="utf-8") as f:
 
     # Print the matched combinations to the file
     if ons_mk1_hits != 0:
-        print("Matched values for mk1 (first + last + dob):", file=f)
+        print("Matched values for mk_ons_1 (first + last + dob):", file=f)
         for hash_val, values in mk1_matches:
             print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
 
     if ons_mk2_hits != 0:
-        print("Matched values for mk2 (first_initial + last + dob):", file=f)
+        print("Matched values for mk_ons_2 (first_initial + last + dob):", file=f)
         for hash_val, values in mk2_matches:
             print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
 
     if ons_mk3_hits != 0:
-        print("Matched values for mk3 (first + zip + dob):", file=f)
+        print("Matched values for mk_ons_3 (first + zip + dob):", file=f)
         for hash_val, values in mk3_matches:
             print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
 
     if ons_mk4_hits != 0:
-        print("Matched values for mk4 (soundex(last name) + dob):", file=f)
+        print("Matched values for mk_ons_4 (soundex(last name) + dob):", file=f)
         for hash_val, values in mk4_matches:
             print(f"Hash: {hash_val}  ←  Values: {values}", file=f)   
 
     if ons_mk5_hits != 0:
-        print("Matched values for mk5 (first[:3] + last + year_of_birth):", file=f)
+        print("Matched values for mk_ons_5 (first[:3] + last + year_of_birth):", file=f)
         for hash_val, values in mk5_matches:
             print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
 
     if ons_mk6_hits != 0:
-        print("Matched values for mk6 (first + soundex(last name) + dob):", file=f)
+        print("Matched values for mk_ons_6 (first + soundex(last name) + dob):", file=f)
         for hash_val, values in mk6_matches:
             print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
 
     if ons_mk7_hits != 0:
-        print("Matched values for mk7 (first_initial + soundex(last name) + dob):", file=f)
+        print("Matched values for mk_ons_7 (first_initial + soundex(last name) + dob):", file=f)
         for hash_val, values in mk7_matches:
             print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
 
     if ons_mk8_hits != 0:
-        print("Matched values for mk8 (first + last + dob[:7]):", file=f)
+        print("Matched values for mk_ons_8 (first + last + dob[:7]):", file=f)
         for hash_val, values in mk8_matches:
             print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
 
     if ons_mk9_hits != 0:
-        print("Matched values for mk9 (first_initial + last_initial + year_of_birth):", file=f)
+        print("Matched values for mk_ons_9 (first_initial + last_initial + year_of_birth):", file=f)
         for hash_val, values in mk9_matches:
             print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
 
     if ons_mk10_hits != 0:
-        print("Matched values for mk10 (last_name + zip + year_of_birth):", file=f)
+        print("Matched values for mk_ons_10 (last_name + zip + year_of_birth):", file=f)
         for hash_val, values in mk10_matches:
             print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
 
     if ons_mk11_hits != 0:
-        print("Matched values for mk11 (first + year_of_birth + zip[:3]):", file=f)
+        print("Matched values for mk_ons_11 (first + year_of_birth + zip[:3]):", file=f)
         for hash_val, values in mk11_matches:
             print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
 
     if ons_mk12_hits != 0:
-        print("Matched values for mk12 (soundex(first_name) + last_name + dob):", file=f)
+        print("Matched values for mk_ons_12 (soundex(first_name) + last_name + dob):", file=f)
         for hash_val, values in mk12_matches:
             print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
 
     if ons_mk13_hits != 0:
-        print("Matched values for mk13 (last_name + year_of_birth + zip[:3]):", file=f)
+        print("Matched values for mk_ons_13 (last_name + year_of_birth + zip[:3]):", file=f)
         for hash_val, values in mk13_matches:
             print(f"Hash: {hash_val}  ←  Values: {values}", file=f)
 

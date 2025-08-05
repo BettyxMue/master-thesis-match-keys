@@ -15,11 +15,8 @@ df_randall = pd.read_csv(df_randall_file)
 # Analyze top distributions for key fields used in ONS and Randall tokens
 top_first_names = df_original["first_name"].value_counts().head(100).index.tolist()
 top_last_names = df_original["last_name"].value_counts().head(100).index.tolist()
-# top_dobs = df_original["dob"].value_counts().head(100).index.tolist()
 top_yobs = df_original["year_of_birth"].value_counts().head(100).index.astype(str).tolist()
 top_zips = df_original["zip"].value_counts().head(100).index.tolist()
-# top_genders = df_original["gender"].value_counts().head(2).index.tolist()
-# top_emails = df_original["email"].value_counts().head(100).index.tolist()
 top_addresses = df_original["address"].value_counts().head(100).index.tolist()
 top_first_initials = df_original["first_initial"].value_counts().head(100).index.tolist()
 
@@ -33,7 +30,8 @@ else:
 if "gender" in df_original.columns:
     top_genders = df_original["gender"].value_counts().head(2).index.tolist()
 else:
-    top_genders = []  # Leave it empty if the column doesn't exist
+    # Assume a 50:50 ratio of male and female if the column doesn't exist
+    top_genders = []
 
 # Check if the "dob" column exists before analyzing its distribution
 if "dob" in df_original.columns:
@@ -198,12 +196,12 @@ with open(output_file, "w", encoding="utf-8") as f:
             print(f"Hash: {hash_val} ← Values: {values}", file=f)
 
     if matches_mk6:
-        print("Matches for mk_randall_6: (last + yob + zip)", file=f)
+        print("Matches for mk_randall_6 (last + yob + zip)", file=f)
         for hash_val, values in matches_mk6:
             print(f"Hash: {hash_val} ← Values: {values}", file=f)
 
     if matches_mk7:
-        print("Matches for mk_randall_7: (first_initial + last + dob)", file=f)
+        print("Matches for mk_randall_7 (first_initial + last + dob)", file=f)
         for hash_val, values in matches_mk7:
             print(f"Hash: {hash_val} ← Values: {values}", file=f)
 
