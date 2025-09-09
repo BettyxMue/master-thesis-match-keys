@@ -10,21 +10,19 @@ def normalize_field(value):
 def normalize_zip(zip_code):
     return re.sub(r'\D', '', str(zip_code)) if zip_code else None
 
-# Function to merge two profiles (selecting a representative hash)
 def merge_profiles(existing_profile, new_data):
     # Keep the first hash encountered as the representative hash
     if "hash" not in existing_profile:
         existing_profile["hash"] = new_data["hash"]
 
     # Update day of birth if missing or if new_data provides a more specific value
-    if existing_profile.get("date_of_birth") == None and new_data.get("date_of_birth"):
-        existing_profile["date_of_birth"] = new_data["date_of_birth"]
-    # Handle conflicting day of birth (optional: log conflicts)
-    elif existing_profile.get("date_of_birth") and new_data.get("date_of_birth"):
-        if existing_profile["date_of_birth"] != new_data["date_of_birth"]:
+    if existing_profile.get("dob") is None and new_data.get("dob"):
+        existing_profile["dob"] = new_data["dob"]
+    elif existing_profile.get("dob") and new_data.get("dob"):
+        if existing_profile["dob"] != new_data["dob"]:
             print(f"Conflict in day of birth for {existing_profile.get('first_name', 'Unknown')} {existing_profile.get('last_name', 'Unknown')}: "
-                  f"{existing_profile['date_of_birth']} vs {new_data['date_of_birth']}")
-            
+                  f"{existing_profile['dob']} vs {new_data['dob']}")
+
     # Merge gender
     if existing_profile.get("gender") is None and new_data.get("gender"):
         existing_profile["gender"] = new_data["gender"]
@@ -32,15 +30,19 @@ def merge_profiles(existing_profile, new_data):
         if existing_profile["gender"] != new_data["gender"]:
             print(f"Conflict in gender for {existing_profile.get('first_name', 'Unknown')} {existing_profile.get('last_name', 'Unknown')}: "
                   f"{existing_profile['gender']} vs {new_data['gender']}")
-    # Deduce gender using the first name if not already set, using a library
+
+    """ # Deduce gender using the first name if not already set, using a library
     if existing_profile.get("gender") is None and existing_profile.get("first_name"):
         detector = Detector()
         first_name = existing_profile["first_name"].capitalize()
         guessed_gender = detector.get_gender(first_name)
         if guessed_gender in ["male", "mostly_male"]:
             existing_profile["gender"] = "male"
+            new_data["gender"] = "male"
         elif guessed_gender in ["female", "mostly_female"]:
             existing_profile["gender"] = "female"
+            new_data["gender"] = "female" """
+
     return existing_profile
 
 # Main function to process input and output profiles
@@ -70,286 +72,321 @@ def consolidate_profiles(input_file, output_file):
                 # Handle different match key formats
                 # ---------- Randall Match Keys Handling ----------
                 # Format: mk_randall_1 -> first_name, last_name, dob
-                if current_match_key == "mk_randall_1" and len(plain_values) == 3:
-                    first_name, last_name, dob = plain_values
-                    year_of_birth = dob.split('-')[0] if '-' in dob else None
-                    key = generate_profile_key(first_name, last_name, year_of_birth, dob)
-                    new_data = {
-                        "first_name": normalize_field(first_name),
-                        "last_name": normalize_field(last_name),
-                        "dob": dob,
-                        "year_of_birth": year_of_birth,
-                        "hash": hash_val,
-                    }
+                if re.match(r"^mk_randall_", current_match_key):
+                    if current_match_key == "mk_randall_1" and len(plain_values) == 3:
+                        first_name, last_name, dob = plain_values
+                        year_of_birth = dob.split('-')[0] if '-' in dob else None
+                        key = generate_profile_key(first_name, last_name, year_of_birth, dob)
+                        new_data = {
+                            "first_name": normalize_field(first_name),
+                            "last_name": normalize_field(last_name),
+                            "dob": dob,
+                            "year_of_birth": year_of_birth,
+                            "hash": hash_val,
+                        }
 
-                # Format: mk_randall_2 -> first_name, zip_code, year_of_birth
-                elif current_match_key == "mk_randall_2" and len(plain_values) == 3:
-                    first_name, zip_code, year_of_birth = plain_values
-                    key = generate_profile_key(first_name, year_of_birth)
-                    new_data = {
-                        "first_name": normalize_field(first_name),
-                        "zip_code": normalize_zip(zip_code),
-                        "year_of_birth": year_of_birth,
-                        "hash": hash_val,
-                    }
+                    # Format: mk_randall_2 -> first_name, zip_code, year_of_birth
+                    elif current_match_key == "mk_randall_2" and len(plain_values) == 3:
+                        first_name, zip_code, year_of_birth = plain_values
+                        key = generate_profile_key(first_name, year_of_birth)
+                        new_data = {
+                            "first_name": normalize_field(first_name),
+                            "zip_code": normalize_zip(zip_code),
+                            "year_of_birth": year_of_birth,
+                            "hash": hash_val,
+                        }
 
-                # Format: mk_randall_3 -> last_name, dob, gender
-                elif current_match_key == "mk_randall_3" and len(plain_values) == 3:
-                    last_name, dob, gender = plain_values
-                    year_of_birth = dob.split('-')[0] if '-' in dob else None
-                    key = generate_profile_key(last_name, year_of_birth, dob)
-                    new_data = {
-                        "last_name": normalize_field(last_name),
-                        "dob": dob,
-                        "gender": normalize_field(gender),
-                        "year_of_birth": year_of_birth,
-                        "hash": hash_val,
-                    }
+                    # Format: mk_randall_3 -> last_name, dob, gender
+                    elif current_match_key == "mk_randall_3" and len(plain_values) == 3:
+                        last_name, dob, gender = plain_values
+                        year_of_birth = dob.split('-')[0] if '-' in dob else None
+                        key = generate_profile_key(last_name, year_of_birth, dob)
+                        new_data = {
+                            "last_name": normalize_field(last_name),
+                            "dob": dob,
+                            "gender": normalize_field(gender),
+                            "year_of_birth": year_of_birth,
+                            "hash": hash_val,
+                        }
 
-                # Format: mk_randall_4 -> first_name, gender, zip_code
-                elif current_match_key == "mk_randall_4" and len(plain_values) == 3:
-                    first_name, gender, zip_code = plain_values
-                    key = generate_profile_key(first_name, zip_code)
-                    new_data = {
-                        "first_name": normalize_field(first_name),
-                        "gender": normalize_field(gender),
-                        "zip_code": normalize_zip(zip_code),
-                        "hash": hash_val,
-                    }
+                    # Format: mk_randall_4 -> first_name, gender, zip_code
+                    elif current_match_key == "mk_randall_4" and len(plain_values) == 3:
+                        first_name, gender, zip_code = plain_values
+                        key = generate_profile_key(first_name, zip_code)
+                        new_data = {
+                            "first_name": normalize_field(first_name),
+                            "gender": normalize_field(gender),
+                            "zip_code": normalize_zip(zip_code),
+                            "hash": hash_val,
+                        }
 
-                # Format: mk_randall_5 -> first_name, last_name, email
-                elif current_match_key == "mk_randall_5" and len(plain_values) == 3:
-                    first_name, last_name, email = plain_values
-                    key = generate_profile_key(first_name, last_name)
-                    new_data = {
-                        "first_name": normalize_field(first_name),
-                        "last_name": normalize_field(last_name),
-                        "email": normalize_field(email),
-                        "hash": hash_val,
-                    }
+                    # Format: mk_randall_5 -> first_name, last_name, email
+                    elif current_match_key == "mk_randall_5" and len(plain_values) == 3:
+                        first_name, last_name, email = plain_values
+                        key = generate_profile_key(first_name, last_name)
+                        new_data = {
+                            "first_name": normalize_field(first_name),
+                            "last_name": normalize_field(last_name),
+                            "email": normalize_field(email),
+                            "hash": hash_val,
+                        }
 
-                # Format: mk_randall_6 -> last_name, year_of_birth, zip_code
-                elif current_match_key == "mk_randall_6" and len(plain_values) == 3:
-                    last_name, year_of_birth, zip_code = plain_values
-                    key = generate_profile_key(last_name, year_of_birth)
-                    new_data = {
-                        "last_name": normalize_field(last_name),
-                        "year_of_birth": year_of_birth,
-                        "zip_code": normalize_zip(zip_code),
-                        "hash": hash_val,
-                    }
+                    # Format: mk_randall_6 -> last_name, year_of_birth, zip_code
+                    elif current_match_key == "mk_randall_6" and len(plain_values) == 3:
+                        last_name, year_of_birth, zip_code = plain_values
+                        key = generate_profile_key(last_name, year_of_birth)
+                        new_data = {
+                            "last_name": normalize_field(last_name),
+                            "year_of_birth": year_of_birth,
+                            "zip_code": normalize_zip(zip_code),
+                            "hash": hash_val,
+                        }
 
-                # Format: mk_randall_7 -> first_initial, last_name, dob
-                elif current_match_key == "mk_randall_7" and len(plain_values) == 3:
-                    first_initial, last_name, dob = plain_values
-                    year_of_birth = dob.split('-')[0] if '-' in dob else None
-                    key = generate_profile_key(first_initial, last_name, year_of_birth, dob)
-                    new_data = {
-                        "first_initial": normalize_field(first_initial),
-                        "last_name": normalize_field(last_name),
-                        "dob": dob,
-                        "year_of_birth": year_of_birth,
-                        "hash": hash_val,
-                    }
+                    # Format: mk_randall_7 -> first_initial, last_name, dob
+                    elif current_match_key == "mk_randall_7" and len(plain_values) == 3:
+                        first_initial, last_name, dob = plain_values
+                        year_of_birth = dob.split('-')[0] if '-' in dob else None
+                        key = generate_profile_key(first_initial, last_name, year_of_birth, dob)
+                        new_data = {
+                            "first_initial": normalize_field(first_initial),
+                            "last_name": normalize_field(last_name),
+                            "dob": dob,
+                            "year_of_birth": year_of_birth,
+                            "hash": hash_val,
+                        }
 
-                # Format: mk_randall_8 -> first_name, address, zip_code
-                elif current_match_key == "mk_randall_8" and len(plain_values) == 3:
-                    first_name, address, zip_code = plain_values
-                    key = generate_profile_key(first_name, zip_code)
-                    new_data = {
-                        "first_name": normalize_field(first_name),
-                        "address": normalize_field(address),
-                        "zip_code": normalize_zip(zip_code),
-                        "hash": hash_val,
-                    }
+                    # Format: mk_randall_8 -> first_name, address, zip_code
+                    elif current_match_key == "mk_randall_8" and len(plain_values) == 3:
+                        first_name, address, zip_code = plain_values
+                        key = generate_profile_key(first_name, zip_code)
+                        new_data = {
+                            "first_name": normalize_field(first_name),
+                            "address": normalize_field(address),
+                            "zip_code": normalize_zip(zip_code),
+                            "hash": hash_val,
+                        }
 
-                # Format: mk_randall_9 -> first_name, dob, email
-                elif current_match_key == "mk_randall_9" and len(plain_values) == 3:
-                    first_name, dob, email = plain_values
-                    year_of_birth = dob.split('-')[0] if '-' in dob else None
-                    key = generate_profile_key(first_name, year_of_birth, dob)
-                    new_data = {
-                        "first_name": normalize_field(first_name),
-                        "dob": dob,
-                        "email": normalize_field(email),
-                        "year_of_birth": year_of_birth,
-                        "hash": hash_val,
-                    }
+                    # Format: mk_randall_9 -> first_name, dob, email
+                    elif current_match_key == "mk_randall_9" and len(plain_values) == 3:
+                        first_name, dob, email = plain_values
+                        year_of_birth = dob.split('-')[0] if '-' in dob else None
+                        key = generate_profile_key(first_name, year_of_birth, dob)
+                        new_data = {
+                            "first_name": normalize_field(first_name),
+                            "dob": dob,
+                            "email": normalize_field(email),
+                            "year_of_birth": year_of_birth,
+                            "hash": hash_val,
+                        }
 
-                # Format: mk_randall_10 -> last_name, gender, email
-                elif current_match_key == "mk_randall_10" and len(plain_values) == 3:
-                    last_name, gender, email = plain_values
-                    key = generate_profile_key(last_name, gender)
-                    new_data = {
-                        "last_name": normalize_field(last_name),
-                        "gender": normalize_field(gender),
-                        "email": normalize_field(email),
-                        "hash": hash_val,
-                    }
+                    # Format: mk_randall_10 -> last_name, gender, email
+                    elif current_match_key == "mk_randall_10" and len(plain_values) == 3:
+                        last_name, gender, email = plain_values
+                        key = generate_profile_key(last_name, gender)
+                        new_data = {
+                            "last_name": normalize_field(last_name),
+                            "gender": normalize_field(gender),
+                            "email": normalize_field(email),
+                            "hash": hash_val,
+                        }
 
                 # ---------- ONS Match Keys Handling ----------
                 # mk_ons_1: first_name, last_name, dob
-                elif current_match_key == "mk_ons_1" and len(plain_values) == 3:
-                    first_name, last_name, dob = plain_values
-                    year_of_birth = dob.split("-")[0]
-                    key = generate_profile_key(first_name, last_name, year_of_birth, dob)
-                    new_data = {
-                        "first_name": normalize_field(first_name),
+                elif re.match(r"^mk_ons_", current_match_key):
+                    if current_match_key == "mk_ons_1" and len(plain_values) == 3:
+                        first_name, last_name, dob = plain_values
+                        year_of_birth = dob.split("-")[0]
+                        key = generate_profile_key(first_name, last_name, year_of_birth, dob)
+                        new_data = {
+                            "first_name": normalize_field(first_name),
                         "last_name": normalize_field(last_name),
                         "dob": dob,
                         "year_of_birth": year_of_birth,
                         "hash": hash_val,
                     }
 
-                # mk_ons_2: last_name, dob, gender
-                elif current_match_key == "mk_ons_2" and len(plain_values) == 3:
-                    last_name, dob, gender = plain_values
-                    year_of_birth = dob.split("-")[0]
-                    key = generate_profile_key(last_name, year_of_birth, dob)
-                    new_data = {
-                        "last_name": normalize_field(last_name),
-                        "dob": dob,
-                        "gender": normalize_field(gender),
-                        "year_of_birth": year_of_birth,
-                        "hash": hash_val,
-                    }
+                    # mk_ons_2: last_name, dob, gender
+                    elif current_match_key == "mk_ons_2" and len(plain_values) == 3:
+                        last_name, dob, gender = plain_values
+                        year_of_birth = dob.split("-")[0]
+                        key = generate_profile_key(last_name, year_of_birth, dob)
+                        new_data = {
+                            "last_name": normalize_field(last_name),
+                            "dob": dob,
+                            "gender": normalize_field(gender),
+                            "year_of_birth": year_of_birth,
+                            "hash": hash_val,
+                        }
 
-                # mk_ons_3: first_name, dob, gender
-                elif current_match_key == "mk_ons_3" and len(plain_values) == 3:
-                    first_name, dob, gender = plain_values
-                    year_of_birth = dob.split("-")[0]
-                    key = generate_profile_key(first_name, year_of_birth, dob)
-                    new_data = {
-                        "first_name": normalize_field(first_name),
-                        "dob": dob,
-                        "gender": normalize_field(gender),
-                        "year_of_birth": year_of_birth,
-                        "hash": hash_val,
-                    }
+                    # mk_ons_3: first_name, dob, gender
+                    elif current_match_key == "mk_ons_3" and len(plain_values) == 3:
+                        first_name, dob, gender = plain_values
+                        year_of_birth = dob.split("-")[0]
+                        key = generate_profile_key(first_name, year_of_birth, dob)
+                        new_data = {
+                            "first_name": normalize_field(first_name),
+                            "dob": dob,
+                            "gender": normalize_field(gender),
+                            "year_of_birth": year_of_birth,
+                            "hash": hash_val,
+                        }
 
-                # mk_ons_4: first_name, last_name, gender
-                elif current_match_key == "mk_ons_4" and len(plain_values) == 3:
-                    first_name, last_name, gender = plain_values
-                    key = generate_profile_key(first_name, last_name, gender)
-                    new_data = {
-                        "first_name": normalize_field(first_name),
-                        "last_name": normalize_field(last_name),
-                        "gender": normalize_field(gender),
-                        "hash": hash_val,
-                    }
+                    # mk_ons_4: first_name, last_name, gender
+                    elif current_match_key == "mk_ons_4" and len(plain_values) == 3:
+                        first_name, last_name, gender = plain_values
+                        key = generate_profile_key(first_name, last_name, gender)
+                        new_data = {
+                            "first_name": normalize_field(first_name),
+                            "last_name": normalize_field(last_name),
+                            "gender": normalize_field(gender),
+                            "hash": hash_val,
+                        }
 
-                # mk_ons_5: first_name, last_name, postcode
-                elif current_match_key == "mk_ons_5" and len(plain_values) == 3:
-                    first_name, last_name, postcode = plain_values
-                    key = generate_profile_key(first_name, last_name, postcode)
-                    new_data = {
-                        "first_name": normalize_field(first_name),
-                        "last_name": normalize_field(last_name),
-                        "zip_code": normalize_zip(postcode),
-                        "hash": hash_val,
-                    }
+                    # mk_ons_5: first_name, last_name, postcode
+                    elif current_match_key == "mk_ons_5" and len(plain_values) == 3:
+                        first_name, last_name, postcode = plain_values
+                        key = generate_profile_key(first_name, last_name, postcode)
+                        new_data = {
+                            "first_name": normalize_field(first_name),
+                            "last_name": normalize_field(last_name),
+                            "zip_code": normalize_zip(postcode),
+                            "hash": hash_val,
+                        }
 
-                # mk_ons_6: last_name, dob, postcode
-                elif current_match_key == "mk_ons_6" and len(plain_values) == 3:
-                    last_name, dob, postcode = plain_values
-                    year_of_birth = dob.split("-")[0]
-                    key = generate_profile_key(last_name, year_of_birth, dob)
-                    new_data = {
-                        "last_name": normalize_field(last_name),
-                        "dob": dob,
-                        "year_of_birth": year_of_birth,
-                        "zip_code": normalize_zip(postcode),
-                        "hash": hash_val,
-                    }
+                    # mk_ons_6: last_name, dob, postcode
+                    elif current_match_key == "mk_ons_6" and len(plain_values) == 3:
+                        last_name, dob, postcode = plain_values
+                        year_of_birth = dob.split("-")[0]
+                        key = generate_profile_key(last_name, year_of_birth, dob)
+                        new_data = {
+                            "last_name": normalize_field(last_name),
+                            "dob": dob,
+                            "year_of_birth": year_of_birth,
+                            "zip_code": normalize_zip(postcode),
+                            "hash": hash_val,
+                        }
 
-                # mk_ons_7: first_name, dob, postcode
-                elif current_match_key == "mk_ons_7" and len(plain_values) == 3:
-                    first_name, dob, postcode = plain_values
-                    year_of_birth = dob.split("-")[0]
-                    key = generate_profile_key(first_name, year_of_birth, dob)
-                    new_data = {
-                        "first_name": normalize_field(first_name),
-                        "dob": dob,
-                        "year_of_birth": year_of_birth,
-                        "zip_code": normalize_zip(postcode),
-                        "hash": hash_val,
-                    }
+                    # mk_ons_7: first_name, dob, postcode
+                    elif current_match_key == "mk_ons_7" and len(plain_values) == 3:
+                        first_name, dob, postcode = plain_values
+                        year_of_birth = dob.split("-")[0]
+                        key = generate_profile_key(first_name, year_of_birth, dob)
+                        new_data = {
+                            "first_name": normalize_field(first_name),
+                            "dob": dob,
+                            "year_of_birth": year_of_birth,
+                            "zip_code": normalize_zip(postcode),
+                            "hash": hash_val,
+                        }
 
-                # mk_ons_8: last_name, gender, postcode
-                elif current_match_key == "mk_ons_8" and len(plain_values) == 3:
-                    last_name, gender, postcode = plain_values
-                    key = generate_profile_key(last_name, gender, postcode)
-                    new_data = {
-                        "last_name": normalize_field(last_name),
-                        "gender": normalize_field(gender),
-                        "zip_code": normalize_zip(postcode),
-                        "hash": hash_val,
-                    }
+                    # mk_ons_8: last_name, gender, postcode
+                    elif current_match_key == "mk_ons_8" and len(plain_values) == 3:
+                        last_name, gender, postcode = plain_values
+                        key = generate_profile_key(last_name, gender, postcode)
+                        new_data = {
+                            "last_name": normalize_field(last_name),
+                            "gender": normalize_field(gender),
+                            "zip_code": normalize_zip(postcode),
+                            "hash": hash_val,
+                        }
 
-                # mk_ons_9: first_name, gender, postcode
-                elif current_match_key == "mk_ons_9" and len(plain_values) == 3:
-                    first_name, gender, postcode = plain_values
-                    key = generate_profile_key(first_name, gender, postcode)
-                    new_data = {
-                        "first_name": normalize_field(first_name),
-                        "gender": normalize_field(gender),
-                        "zip_code": normalize_zip(postcode),
-                        "hash": hash_val,
-                    }
+                    # mk_ons_9: first_name, gender, postcode
+                    elif current_match_key == "mk_ons_9" and len(plain_values) == 3:
+                        first_name, gender, postcode = plain_values
+                        key = generate_profile_key(first_name, gender, postcode)
+                        new_data = {
+                            "first_name": normalize_field(first_name),
+                            "gender": normalize_field(gender),
+                            "zip_code": normalize_zip(postcode),
+                            "hash": hash_val,
+                        }
 
-                # mk_ons_10: first_initial, dob, postcode
-                elif current_match_key == "mk_ons_10" and len(plain_values) == 3:
-                    first_initial, dob, postcode = plain_values
-                    year_of_birth = dob.split("-")[0]
-                    key = generate_profile_key(first_initial, year_of_birth, dob)
-                    new_data = {
-                        "first_initial": normalize_field(first_initial),
-                        "dob": dob,
-                        "year_of_birth": year_of_birth,
-                        "zip_code": normalize_zip(postcode),
-                        "hash": hash_val,
-                    }
+                    # mk_ons_10: first_initial, dob, postcode
+                    elif current_match_key == "mk_ons_10" and len(plain_values) == 3:
+                        first_initial, dob, postcode = plain_values
+                        year_of_birth = dob.split("-")[0]
+                        key = generate_profile_key(first_initial, year_of_birth, dob)
+                        new_data = {
+                            "first_initial": normalize_field(first_initial),
+                            "dob": dob,
+                            "year_of_birth": year_of_birth,
+                            "zip_code": normalize_zip(postcode),
+                            "hash": hash_val,
+                        }
 
-                # mk_ons_11: last_name, postcode
-                elif current_match_key == "mk_ons_11" and len(plain_values) == 2:
-                    last_name, postcode = plain_values
-                    key = generate_profile_key(last_name, postcode)
-                    new_data = {
-                        "last_name": normalize_field(last_name),
-                        "zip_code": normalize_zip(postcode),
-                        "hash": hash_val,
-                    }
+                    # mk_ons_11: last_name, postcode
+                    elif current_match_key == "mk_ons_11" and len(plain_values) == 2:
+                        last_name, postcode = plain_values
+                        key = generate_profile_key(last_name, postcode)
+                        new_data = {
+                            "last_name": normalize_field(last_name),
+                            "zip_code": normalize_zip(postcode),
+                            "hash": hash_val,
+                        }
 
-                # mk_ons_12: first_name, postcode
-                elif current_match_key == "mk_ons_12" and len(plain_values) == 2:
-                    first_name, postcode = plain_values
-                    key = generate_profile_key(first_name, postcode)
-                    new_data = {
-                        "first_name": normalize_field(first_name),
-                        "zip_code": normalize_zip(postcode),
-                        "hash": hash_val,
-                    }
+                    # mk_ons_12: first_name, postcode
+                    elif current_match_key == "mk_ons_12" and len(plain_values) == 2:
+                        first_name, postcode = plain_values
+                        key = generate_profile_key(first_name, postcode)
+                        new_data = {
+                            "first_name": normalize_field(first_name),
+                            "zip_code": normalize_zip(postcode),
+                            "hash": hash_val,
+                        }
 
-                # mk_ons_13: postcode, gender
-                elif current_match_key == "mk_ons_13" and len(plain_values) == 2:
-                    postcode, gender = plain_values
-                    key = generate_profile_key(postcode, gender)
-                    new_data = {
-                        "zip_code": normalize_zip(postcode),
-                        "gender": normalize_field(gender),
-                        "hash": hash_val,
-                    }
+                    # mk_ons_13: postcode, gender
+                    elif current_match_key == "mk_ons_13" and len(plain_values) == 2:
+                        postcode, gender = plain_values
+                        key = generate_profile_key(postcode, gender)
+                        new_data = {
+                            "zip_code": normalize_zip(postcode),
+                            "gender": normalize_field(gender),
+                            "hash": hash_val,
+                        }
+                    
+                    else:
+                        print(f"Unknown or unmatched format for {current_match_key}: {plain_values}")
+                        continue
 
                 else:
                     print(f"Unknown or unmatched format for {current_match_key}: {plain_values}")
                     continue
 
+                # Initialize each profile with all attributes, including gender
+                initialized_profile = {
+                    "first_name": new_data.get("first_name"),
+                    "last_name": new_data.get("last_name"),
+                    "dob": new_data.get("dob"),
+                    "year_of_birth": new_data.get("year_of_birth"),
+                    "gender": new_data.get("gender"),
+                    "email": new_data.get("email"),
+                    "zip_code": new_data.get("zip_code"),
+                    "address": new_data.get("address"),
+                    "hash": new_data.get("hash"),
+                }
+
                 # Merge into profiles or create a new profile
                 if key in profiles:
-                    profiles[key] = merge_profiles(profiles[key], new_data)
+                    merged_profile = merge_profiles(profiles[key], initialized_profile)
+                    if merged_profile["gender"] is None and initialized_profile.get("first_name"):
+                        detector = Detector()
+                        first_cap = merged_profile["first_name"].capitalize()
+                        guessed_gender = detector.get_gender(first_cap)
+                        if guessed_gender in ["male", "mostly_male"]:
+                            merged_profile["gender"] = "male"
+                        elif guessed_gender in ["female", "mostly_female"]:
+                            merged_profile["gender"] = "female"
+                    profiles[key] = merged_profile  # Explicitly update the profiles dictionary
                 else:
-                    # Create a new profile if no match is found
-                    profiles[key] = new_data
+                    if initialized_profile["gender"] is None and initialized_profile.get("first_name"):
+                        detector = Detector()
+                        first_cap = initialized_profile["first_name"].capitalize()
+                        guessed_gender = detector.get_gender(first_cap)
+                        if guessed_gender in ["male", "mostly_male"]:
+                            initialized_profile["gender"] = "male"
+                        elif guessed_gender in ["female", "mostly_female"]:
+                            initialized_profile["gender"] = "female"
+                    profiles[key] = initialized_profile
 
     # Write the unified profiles to the output file
     with open(output_file, "w", encoding="utf-8") as f:  # Specify UTF-8 encoding for output
@@ -361,7 +398,7 @@ def consolidate_profiles(input_file, output_file):
             f.write(f"  First Name: {profile.get('first_name', 'None')}\n")  # Use .get() to handle missing keys
             f.write(f"  Last Name: {profile.get('last_name', 'None')}\n")    # Use .get() to handle missing keys
             f.write(f"  Year of Birth: {profile.get('year_of_birth', 'None')}\n")
-            f.write(f"  Date of Birth: {profile.get('date_of_birth', 'None')}\n")
+            f.write(f"  Date of Birth: {profile.get('dob', 'None')}\n")
             f.write(f"  Gender: {profile.get('gender', 'None')}\n")
             f.write(f"  Email: {profile.get('email', 'None')}\n")
             f.write(f"  ZIP Code: {profile.get('zip_code', 'None')}\n")
